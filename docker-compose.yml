@@ -1,0 +1,32 @@
+services:
+  # MySQL
+  mysql:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=root123456
+      - MYSQL_DATABASE=tiny_douyin
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - tiny_douyin_network
+  # Redis
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - tiny_douyin_network
+volumes:
+  mysql_data:
+  redis_data:
+
+networks:
+  tiny_douyin_network:
+    driver: bridge
+

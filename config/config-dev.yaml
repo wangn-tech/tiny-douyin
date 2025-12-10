@@ -1,0 +1,21 @@
+server:
+  port: 8082
+  # mode: debug | release | test
+  mode: debug
+
+mysql:
+  host: 127.0.0.1
+  port: 3306
+  user: root
+  password: root123456
+  db_name: tiny_douyin
+
+redis:
+  host: 127.0.0.1
+  port: 6379
+  password: ""
+  db: 0
+
+jwt:
+  secret: tiny_douyin
+  ttl: 7200
