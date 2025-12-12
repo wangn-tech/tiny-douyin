@@ -11,9 +11,10 @@ const (
 	ErrInvalidParams     = 1004
 
 	// Auth 2xxx
-	ErrTokenInvalid = 2001
-	ErrTokenExpired = 2002
-	ErrUnauthorized = 2003
+	ErrTokenMissing = 2001
+	ErrTokenInvalid = 2002
+	ErrTokenExpired = 2003
+	ErrUnauthorized = 2004
 
 	// Video 3xxx
 	ErrVideoNotFound = 3001
@@ -26,13 +27,14 @@ const (
 	ErrDatabaseError  = 9002
 )
 
-var ErrMsg = map[int]string{
+var ErrMsg = map[int32]string{
 	Success:              "success",
 	Failed:               "failed",
 	ErrUserNotFound:      "用户不存在",
 	ErrUserAlreadyExists: "用户已存在",
 	ErrInvalidPassword:   "密码错误",
 	ErrInvalidParams:     "参数错误",
+	ErrTokenMissing:      "token缺失",
 	ErrTokenInvalid:      "token无效",
 	ErrTokenExpired:      "token已过期",
 	ErrUnauthorized:      "未授权",
@@ -42,7 +44,7 @@ var ErrMsg = map[int]string{
 	ErrDatabaseError:     "数据库错误",
 }
 
-func GetMsg(code int) string {
+func GetMsg(code int32) string {
 	if msg, ok := ErrMsg[code]; ok {
 		return msg
 	}

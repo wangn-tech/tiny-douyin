@@ -7,7 +7,7 @@ import (
 )
 
 type Response struct {
-	StatusCode int    `json:"status_code"`
+	StatusCode int32  `json:"status_code"`
 	StatusMsg  string `json:"status_msg,omitempty"`
 }
 
@@ -23,6 +23,6 @@ func SuccessWithData(c *gin.Context, data interface{}) {
 	c.JSON(http.StatusOK, data)
 }
 
-func Error(c *gin.Context, code int, msg string) {
+func Error(c *gin.Context, code int32, msg string) {
 	c.JSON(http.StatusOK, Response{StatusCode: code, StatusMsg: msg})
 }
