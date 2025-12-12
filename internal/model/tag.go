@@ -1,13 +1,10 @@
 package model
 
-import "time"
+import "gorm.io/gorm"
 
 type Tag struct {
-	ID        uint64    `gorm:"primaryKey;autoIncrement"`
-	Name      string    `gorm:"type:varchar(64);uniqueIndex;not null"`
-	CreatedAt time.Time `gorm:"index"`
-	UpdatedAt time.Time
-	DeletedAt *time.Time `gorm:"index"`
+	gorm.Model
+	Name string `gorm:"type:varchar(64);uniqueIndex;not null"`
 }
 
 func (Tag) TableName() string { return "tags" }
