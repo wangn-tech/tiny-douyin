@@ -33,3 +33,7 @@ go.work.sum
 
 # 开发进度
 skills.md
+docs/
+
+# 编译程序
+tiny-douyin
