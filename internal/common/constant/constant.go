@@ -85,3 +85,17 @@ const (
 	// RelationActionUnfollow 取消关注
 	RelationActionUnfollow = 2
 )
+
+// 消息操作类型
+const (
+	// MessageActionSend 发送消息
+	MessageActionSend = 1
+)
+
+// 消息相关常量
+const (
+	// MessageMaxLength 消息内容最大长度
+	MessageMaxLength = 255
+	// MessagePageSize 消息分页大小
+	MessagePageSize = 50
+)
