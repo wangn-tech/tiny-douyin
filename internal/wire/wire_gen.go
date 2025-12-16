@@ -78,9 +78,22 @@ func InitRelationHandler() *handler.RelationHandler {
 	db := ProvideDB()
 	iRelationDAO := dao.NewRelationDAO(db)
 	iUserDAO := dao.NewUserDAO(db)
-	iRelationService := service.NewRelationService(iRelationDAO, iUserDAO, db)
+	iMessageDAO := dao.NewMessageDAO(db)
+	iRelationService := service.NewRelationService(iRelationDAO, iUserDAO, iMessageDAO, db)
 	relationHandler := handler.NewRelationHandler(iRelationService)
 	return relationHandler
+}
+
+// InitMessageHandler 初始化 MessageHandler（Wire 自动生成实现）
+func InitMessageHandler() *handler.MessageHandler {
+	db := ProvideDB()
+	iMessageDAO := dao.NewMessageDAO(db)
+	iUserDAO := dao.NewUserDAO(db)
+	iRelationDAO := dao.NewRelationDAO(db)
+	iRelationService := service.NewRelationService(iRelationDAO, iUserDAO, iMessageDAO, db)
+	iMessageService := service.NewMessageService(iMessageDAO, iUserDAO, iRelationService)
+	messageHandler := handler.NewMessageHandler(iMessageService)
+	return messageHandler
 }
 
 // wire.go:
@@ -94,12 +107,12 @@ func ProvideDB() *gorm.DB {
 var UploadSet = wire.NewSet(upload.NewUploadService, upload.NewWorker)
 
 // DAOSet DAO 层 Provider Set（只注入 DB）
-var DAOSet = wire.NewSet(dao.NewUserDAO, dao.NewVideoDAO, dao.NewFavoriteDAO, dao.NewCommentDAO, dao.NewRelationDAO)
+var DAOSet = wire.NewSet(dao.NewUserDAO, dao.NewVideoDAO, dao.NewFavoriteDAO, dao.NewCommentDAO, dao.NewRelationDAO, dao.NewMessageDAO)
 
 // ServiceSet Service 层 Provider Set（只注入 DAO）
-var ServiceSet = wire.NewSet(service.NewUserService, service.NewVideoService, service.NewFavoriteService, service.NewCommentService, service.NewRelationService, DAOSet)
+var ServiceSet = wire.NewSet(service.NewUserService, service.NewVideoService, service.NewFavoriteService, service.NewCommentService, service.NewRelationService, service.NewMessageService, DAOSet)
 
 // HandlerSet Handler 层 Provider Set（只注入 Service 和 Upload）
-var HandlerSet = wire.NewSet(handler.NewUserHandler, handler.NewVideoHandler, handler.NewFavoriteHandler, handler.NewCommentHandler, handler.NewRelationHandler, ServiceSet,
+var HandlerSet = wire.NewSet(handler.NewUserHandler, handler.NewVideoHandler, handler.NewFavoriteHandler, handler.NewCommentHandler, handler.NewRelationHandler, handler.NewMessageHandler, ServiceSet,
 	UploadSet,
 )

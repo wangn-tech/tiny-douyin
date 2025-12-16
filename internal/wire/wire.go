@@ -31,6 +31,7 @@ var DAOSet = wire.NewSet(
 	dao.NewFavoriteDAO,
 	dao.NewCommentDAO,
 	dao.NewRelationDAO,
+	dao.NewMessageDAO,
 )
 
 // ServiceSet Service 层 Provider Set（只注入 DAO）
@@ -40,6 +41,7 @@ var ServiceSet = wire.NewSet(
 	service.NewFavoriteService,
 	service.NewCommentService,
 	service.NewRelationService,
+	service.NewMessageService,
 	DAOSet,
 )
 
@@ -50,6 +52,7 @@ var HandlerSet = wire.NewSet(
 	handler.NewFavoriteHandler,
 	handler.NewCommentHandler,
 	handler.NewRelationHandler,
+	handler.NewMessageHandler,
 	ServiceSet,
 	UploadSet,
 )
@@ -125,8 +128,23 @@ func InitRelationHandler() *handler.RelationHandler {
 		ProvideDB,
 		dao.NewUserDAO,
 		dao.NewRelationDAO,
+		dao.NewMessageDAO,
 		service.NewRelationService,
 		handler.NewRelationHandler,
+	)
+	return nil
+}
+
+// InitMessageHandler 初始化 MessageHandler（Wire 自动生成实现）
+func InitMessageHandler() *handler.MessageHandler {
+	wire.Build(
+		ProvideDB,
+		dao.NewUserDAO,
+		dao.NewRelationDAO,
+		dao.NewMessageDAO,
+		service.NewRelationService,
+		service.NewMessageService,
+		handler.NewMessageHandler,
 	)
 	return nil
 }

@@ -38,6 +38,11 @@ const (
 	ErrNotFollowed      = 6003
 	ErrNotFriend        = 6004
 
+	// Message 7xxx
+	ErrMessageContentEmpty = 7001
+	ErrMessageTooLong      = 7002
+	ErrNotFriendToMessage  = 7003
+
 	// System 9xxx
 	ErrInternalServer = 9001
 	ErrDatabaseError  = 9002
@@ -68,6 +73,9 @@ var ErrMsg = map[int32]string{
 	ErrAlreadyFollowed:         "已经关注过",
 	ErrNotFollowed:             "未关注",
 	ErrNotFriend:               "不是好友关系",
+	ErrMessageContentEmpty:     "消息内容不能为空",
+	ErrMessageTooLong:          "消息内容过长",
+	ErrNotFriendToMessage:      "非好友不能发送消息",
 	ErrInternalServer:          "服务器错误",
 	ErrDatabaseError:           "数据库错误",
 }

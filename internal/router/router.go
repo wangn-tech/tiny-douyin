@@ -84,4 +84,15 @@ func Init(r *gin.Engine) {
 		relationRouter.GET("/friend/list/", relationHandler.GetFriendList)
 	}
 
+	// 消息路由
+	messageHandler := wire.InitMessageHandler()
+
+	// 消息操作（需要登录）
+	messageRouter := apiRouter.Group("/message")
+	messageRouter.Use(middleware.JWTAuth())
+	{
+		messageRouter.POST("/action/", messageHandler.SendMessage)
+		messageRouter.GET("/chat/", messageHandler.GetChatMessages)
+	}
+
 }

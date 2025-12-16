@@ -24,12 +24,15 @@ type IRelationService interface {
 	GetFollowerList(ctx context.Context, currentUserID, targetUserID uint) ([]*dto.UserInfo, error)
 	// GetFriendList 获取好友列表
 	GetFriendList(ctx context.Context, userID uint) ([]*dto.FriendInfo, error)
+	// IsFriend 判断两个用户是否为好友（双向关注）
+	IsFriend(ctx context.Context, userID1, userID2 uint) (bool, error)
 }
 
 // RelationService 关注服务实现
 type RelationService struct {
 	relationDAO dao.IRelationDAO
 	userDAO     dao.IUserDAO
+	messageDAO  dao.IMessageDAO
 	db          *gorm.DB
 }
 
@@ -37,11 +40,13 @@ type RelationService struct {
 func NewRelationService(
 	relationDAO dao.IRelationDAO,
 	userDAO dao.IUserDAO,
+	messageDAO dao.IMessageDAO,
 	db *gorm.DB,
 ) IRelationService {
 	return &RelationService{
 		relationDAO: relationDAO,
 		userDAO:     userDAO,
+		messageDAO:  messageDAO,
 		db:          db,
 	}
 }
@@ -381,9 +386,30 @@ func (s *RelationService) GetFriendList(ctx context.Context, userID uint) ([]*dt
 				FollowerCount: user.FollowerCount,
 				IsFollow:      true, // 好友必定是互相关注的
 			},
-			Message: "", // 暂时为空，等消息模块实现后再填充
-			MsgType: 0,  // 暂时为0
+			Message: "", // 默认为空
+			MsgType: 0,  // 默认为0：当前用户接收的消息
 		}
+
+		// 获取与该好友的最新一条消息
+		latestMsg, err := s.messageDAO.GetLatestMessage(ctx, userID, user.ID)
+		if err != nil {
+			// 查询失败不阻断流程，只记录日志
+			global.Logger.Warn("service.GetFriendList.get_latest_message_error",
+				zap.Uint("user_id", userID),
+				zap.Uint("friend_id", user.ID),
+				zap.Error(err),
+			)
+		} else if latestMsg != nil {
+			// 填充最新消息
+			friendInfo.Message = latestMsg.Content
+			// 判断消息类型：0-当前用户接收的消息，1-当前用户发送的消息
+			if latestMsg.FromUserID == userID {
+				friendInfo.MsgType = 1 // 当前用户发送的
+			} else {
+				friendInfo.MsgType = 0 // 当前用户接收的
+			}
+		}
+
 		friendList = append(friendList, friendInfo)
 	}
 
@@ -393,4 +419,35 @@ func (s *RelationService) GetFriendList(ctx context.Context, userID uint) ([]*dt
 	)
 
 	return friendList, nil
+}
+
+// IsFriend 判断两个用户是否为好友（双向关注）
+func (s *RelationService) IsFriend(ctx context.Context, userID1, userID2 uint) (bool, error) {
+	// 检查 userID1 是否关注 userID2
+	following, err := s.relationDAO.IsFollowing(ctx, userID1, userID2)
+	if err != nil {
+		global.Logger.Error("service.IsFriend.check_following_error",
+			zap.Uint("user_id_1", userID1),
+			zap.Uint("user_id_2", userID2),
+			zap.Error(err),
+		)
+		return false, fmt.Errorf("检查关注关系失败")
+	}
+
+	if !following {
+		return false, nil
+	}
+
+	// 检查 userID2 是否关注 userID1
+	followed, err := s.relationDAO.IsFollowing(ctx, userID2, userID1)
+	if err != nil {
+		global.Logger.Error("service.IsFriend.check_followed_error",
+			zap.Uint("user_id_1", userID1),
+			zap.Uint("user_id_2", userID2),
+			zap.Error(err),
+		)
+		return false, fmt.Errorf("检查关注关系失败")
+	}
+
+	return followed, nil
 }
