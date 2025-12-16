@@ -25,6 +25,11 @@ const (
 	// Comment 4xxx
 	ErrCommentNotFound = 4001
 
+	// Favorite 5xxx
+	ErrInvalidActionType = 5001
+	ErrAlreadyFavorited  = 5002
+	ErrNotFavorited      = 5003
+
 	// System 9xxx
 	ErrInternalServer = 9001
 	ErrDatabaseError  = 9002
@@ -46,6 +51,9 @@ var ErrMsg = map[int32]string{
 	ErrVideoFileInvalid:   "视频文件无效",
 	ErrVideoProcessFailed: "视频处理失败",
 	ErrCommentNotFound:    "评论不存在",
+	ErrInvalidActionType:  "无效的操作类型",
+	ErrAlreadyFavorited:   "已经点赞过",
+	ErrNotFavorited:       "未点赞",
 	ErrInternalServer:     "服务器错误",
 	ErrDatabaseError:      "数据库错误",
 }
