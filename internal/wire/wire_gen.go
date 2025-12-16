@@ -32,7 +32,8 @@ func InitVideoHandler() *handler.VideoHandler {
 	db := ProvideDB()
 	iVideoDAO := dao.NewVideoDAO(db)
 	iUserDAO := dao.NewUserDAO(db)
-	iVideoService := service.NewVideoService(iVideoDAO, iUserDAO)
+	iFavoriteDAO := dao.NewFavoriteDAO(db)
+	iVideoService := service.NewVideoService(iVideoDAO, iUserDAO, iFavoriteDAO)
 	iUploadService := upload.NewUploadService()
 	videoHandler := handler.NewVideoHandler(iVideoService, iUploadService)
 	return videoHandler

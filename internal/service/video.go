@@ -25,21 +25,21 @@ type IVideoService interface {
 
 // VideoService 视频服务实现
 type VideoService struct {
-	videoDAO dao.IVideoDAO
-	userDAO  dao.IUserDAO
-	// TODO: 后续添加
-	// favoriteDAO dao.IFavoriteDAO
-	// commentDAO  dao.ICommentDAO
+	videoDAO    dao.IVideoDAO
+	userDAO     dao.IUserDAO
+	favoriteDAO dao.IFavoriteDAO
 }
 
 // NewVideoService 创建 VideoService 实例
 func NewVideoService(
 	videoDAO dao.IVideoDAO,
 	userDAO dao.IUserDAO,
+	favoriteDAO dao.IFavoriteDAO,
 ) IVideoService {
 	return &VideoService{
-		videoDAO: videoDAO,
-		userDAO:  userDAO,
+		videoDAO:    videoDAO,
+		userDAO:     userDAO,
+		favoriteDAO: favoriteDAO,
 	}
 }
 
@@ -172,10 +172,12 @@ func (s *VideoService) buildVideoDTOList(ctx context.Context, videos []*model.Vi
 	var videoList []dto.Video
 	var nextTime int64
 
-	// 收集所有作者ID
+	// 收集所有作者ID和视频ID
 	authorIDs := make(map[uint]bool)
+	videoIDs := make([]uint, 0, len(videos))
 	for _, video := range videos {
 		authorIDs[video.AuthorID] = true
+		videoIDs = append(videoIDs, video.ID)
 	}
 
 	// 批量查询作者信息（优化：避免N+1查询）
@@ -190,16 +192,22 @@ func (s *VideoService) buildVideoDTOList(ctx context.Context, videos []*model.Vi
 		}
 	}
 
-	// 收集所有视频ID（TODO: 用于批量查询点赞数、评论数）
-	_ = make([]uint, 0, len(videos))
-	// for _, video := range videos {
-	// 	videoIDs = append(videoIDs, video.ID)
-	// }
-
-	// TODO: 批量查询点赞数、评论数（需要先实现 FavoriteDAO 和 CommentDAO）
-	// favoriteCountMap := s.favoriteDAO.CountByVideoIDs(ctx, videoIDs)
-	// commentCountMap := s.commentDAO.CountByVideoIDs(ctx, videoIDs)
-	// isFavoriteMap := s.favoriteDAO.IsFavoriteByUser(ctx, currentUserID, videoIDs)
+	// 批量查询当前用户的点赞状态（如果已登录）
+	var favoriteMap map[uint]bool
+	if currentUserID > 0 {
+		var err error
+		favoriteMap, err = s.favoriteDAO.BatchCheckFavorite(ctx, currentUserID, videoIDs)
+		if err != nil {
+			global.Logger.Error("service.buildVideoDTOList.batch_check_favorite_error",
+				zap.Uint("current_user_id", currentUserID),
+				zap.Error(err),
+			)
+			// 不阻断流程，继续处理
+			favoriteMap = make(map[uint]bool)
+		}
+	} else {
+		favoriteMap = make(map[uint]bool)
+	}
 
 	// 组装视频DTO
 	for _, video := range videos {
@@ -219,9 +227,9 @@ func (s *VideoService) buildVideoDTOList(ctx context.Context, videos []*model.Vi
 				Avatar:    author.Avatar,
 				Signature: author.Signature,
 			},
-			FavoriteCount: 0,     // TODO: 从 favoriteCountMap 获取
-			CommentCount:  0,     // TODO: 从 commentCountMap 获取
-			IsFavorite:    false, // TODO: 从 isFavoriteMap 获取
+			FavoriteCount: video.FavoriteCount,
+			CommentCount:  video.CommentCount,
+			IsFavorite:    favoriteMap[video.ID],
 		}
 
 		videoList = append(videoList, videoDTO)

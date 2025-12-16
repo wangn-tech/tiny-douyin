@@ -65,6 +65,7 @@ func InitVideoHandler() *handler.VideoHandler {
 		ProvideDB,
 		dao.NewUserDAO,
 		dao.NewVideoDAO,
+		dao.NewFavoriteDAO,
 		service.NewVideoService,
 		upload.NewUploadService,
 		handler.NewVideoHandler,
