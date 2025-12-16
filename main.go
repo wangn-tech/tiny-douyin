@@ -1,18 +1,28 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 
 	"github.com/gin-gonic/gin"
+
 	"github.com/wangn-tech/tiny-douyin/internal/global"
 	"github.com/wangn-tech/tiny-douyin/internal/initialize"
 	"github.com/wangn-tech/tiny-douyin/internal/router"
+	"github.com/wangn-tech/tiny-douyin/internal/wire"
 )
 
 func main() {
 	// 初始化
 	initialize.InitAll()
+
+	// 启动上传 worker（使用 Wire 依赖注入）
+	ctx := context.Background()
+	worker := wire.InitUploadWorker()
+	if err := worker.Start(ctx); err != nil {
+		panic(fmt.Sprintf("Failed to start upload worker: %v", err))
+	}
 
 	// 初始化路由
 	gin.SetMode(global.Config.Server.Mode)

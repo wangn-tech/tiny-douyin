@@ -35,11 +35,13 @@ func Init() *AppConfig {
 
 // AppConfig 整合所有配置
 type AppConfig struct {
-	Server Server      `mapstructure:"server"`
-	MySQL  MySQLConfig `mapstructure:"mysql"`
-	Redis  RedisConfig `mapstructure:"redis"`
-	JWT    JWTConfig   `mapstructure:"jwt"`
-	Log    LogConfig   `mapstructure:"log"`
+	Server   Server         `mapstructure:"server"`
+	MySQL    MySQLConfig    `mapstructure:"mysql"`
+	Redis    RedisConfig    `mapstructure:"redis"`
+	JWT      JWTConfig      `mapstructure:"jwt"`
+	Log      LogConfig      `mapstructure:"log"`
+	MinIO    MinIOConfig    `mapstructure:"minio"`
+	RabbitMQ RabbitMQConfig `mapstructure:"rabbitmq"`
 }
 
 type Server struct {
@@ -79,4 +81,26 @@ type LogConfig struct {
 	MaxSizeMB  int    `mapstructure:"max_size_mb"`  // 滚动大小（可选，后续扩展）
 	MaxBackups int    `mapstructure:"max_backups"`  // 保留文件数（可选）
 	MaxAgeDays int    `mapstructure:"max_age_days"` // 保留天数（可选）
+}
+
+// MinIOConfig MinIO 对象存储配置
+type MinIOConfig struct {
+	Endpoint        string `mapstructure:"endpoint"`          // MinIO 服务地址
+	AccessKeyID     string `mapstructure:"access_key_id"`     // 访问密钥 ID
+	SecretAccessKey string `mapstructure:"secret_access_key"` // 访问密钥密码
+	UseSSL          bool   `mapstructure:"use_ssl"`           // 是否使用 HTTPS
+	BucketName      string `mapstructure:"bucket_name"`       // 存储桶名称
+	Location        string `mapstructure:"location"`          // 存储桶位置（区域）
+	URLPrefix       string `mapstructure:"url_prefix"`        // 文件访问 URL 前缀
+}
+
+// RabbitMQConfig RabbitMQ 消息队列配置
+type RabbitMQConfig struct {
+	Host     string `mapstructure:"host"`     // RabbitMQ 服务地址
+	Port     int    `mapstructure:"port"`     // RabbitMQ 服务端口
+	User     string `mapstructure:"user"`     // 用户名
+	Password string `mapstructure:"password"` // 密码
+	VHost    string `mapstructure:"vhost"`    // 虚拟主机
+	Exchange string `mapstructure:"exchange"` // 交换机名称
+	Queue    string `mapstructure:"queue"`    // 队列名称
 }

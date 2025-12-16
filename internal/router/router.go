@@ -3,6 +3,7 @@ package router
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/wangn-tech/tiny-douyin/internal/middleware"
+	"github.com/wangn-tech/tiny-douyin/internal/wire"
 )
 
 func Init(r *gin.Engine) {
@@ -23,7 +24,29 @@ func Init(r *gin.Engine) {
 	// r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// 业务路由
-	// apiRouter := r.Group("/douyin")
-	// 基础接口
+	apiRouter := r.Group("/douyin")
+
+	// 用户路由（使用 Wire 依赖注入）
+	userHandler := wire.InitUserHandler()
+	userRouter := apiRouter.Group("/user")
+	{
+		userRouter.POST("/register/", userHandler.Register)
+		userRouter.POST("/login/", userHandler.Login)
+		userRouter.GET("/", middleware.JWTAuthOptional(), userHandler.GetUserInfo)
+	}
+
+	// 视频路由
+	videoHandler := wire.InitVideoHandler()
+
+	// 视频流（可选登录，传 token 可获取点赞状态）
+	apiRouter.GET("/feed", middleware.JWTAuthOptional(), videoHandler.GetVideoFeed)
+
+	// 视频发布（需要登录）
+	publishRouter := apiRouter.Group("/publish")
+	publishRouter.Use(middleware.JWTAuth())
+	{
+		publishRouter.POST("/action", videoHandler.PublishVideo)
+		publishRouter.GET("/list", videoHandler.GetVideoList)
+	}
 
 }

@@ -1,8 +1,8 @@
 package model
 
 type VideoTag struct {
-	VideoID uint64 `gorm:"primaryKey"`
-	TagID   uint64 `gorm:"primaryKey"`
+	VideoID uint `gorm:"primaryKey"`
+	TagID   uint `gorm:"primaryKey"`
 }
 
 func (VideoTag) TableName() string { return "video_tags" }

@@ -1,5 +1,5 @@
 server:
-  port: 8082
+  port: 8080
   # mode: debug | release | test
   mode: debug
 
@@ -19,3 +19,33 @@ redis:
 jwt:
   secret: tiny_douyin
   ttl: 7200
+
+# 日志配置
+log:
+  level: info           # debug, info, warn, error
+  format: json          # json, console
+  output: file          # stdout, stderr, file
+  file_path: ./tmp/logs/tiny-douyin.log
+  max_size_mb: 100
+  max_backups: 7
+  max_age_days: 30
+
+# MinIO 对象存储配置
+minio:
+  endpoint: localhost:9000
+  access_key_id: minioadmin
+  secret_access_key: minioadmin
+  use_ssl: false
+  bucket_name: tiny-douyin
+  location: us-east-1
+  url_prefix: http://localhost:9000/tiny-douyin
+
+# RabbitMQ 消息队列配置
+rabbitmq:
+  host: localhost
+  port: 5672
+  user: guest
+  password: guest
+  vhost: /
+  exchange: tiny-douyin.video.upload
+  queue: video.upload.queue
