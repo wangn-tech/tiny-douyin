@@ -16,6 +16,14 @@ type IUserDAO interface {
 	GetUserByID(ctx context.Context, id uint) (*model.User, error)
 	ExistsUsername(ctx context.Context, username string) (bool, error)
 	GetUsersByIDs(ctx context.Context, userIDs []uint) ([]*model.User, error)
+	// IncrementFollowCount 增加用户关注数
+	IncrementFollowCount(ctx context.Context, userID uint) error
+	// DecrementFollowCount 减少用户关注数
+	DecrementFollowCount(ctx context.Context, userID uint) error
+	// IncrementFollowerCount 增加用户粉丝数
+	IncrementFollowerCount(ctx context.Context, userID uint) error
+	// DecrementFollowerCount 减少用户粉丝数
+	DecrementFollowerCount(ctx context.Context, userID uint) error
 }
 
 // UserDAO 用户数据访问实现
@@ -129,4 +137,92 @@ func (d *UserDAO) GetUsersByIDs(ctx context.Context, userIDs []uint) ([]*model.U
 	)
 
 	return users, nil
+}
+
+// IncrementFollowCount 增加用户关注数
+func (d *UserDAO) IncrementFollowCount(ctx context.Context, userID uint) error {
+	err := d.db.WithContext(ctx).
+		Model(&model.User{}).
+		Where("id = ?", userID).
+		UpdateColumn("follow_count", gorm.Expr("follow_count + ?", 1)).Error
+
+	if err != nil {
+		global.Logger.Error("dao.IncrementFollowCount.db_error",
+			zap.Uint("user_id", userID),
+			zap.Error(err),
+		)
+		return err
+	}
+
+	global.Logger.Info("dao.IncrementFollowCount.success",
+		zap.Uint("user_id", userID),
+	)
+
+	return nil
+}
+
+// DecrementFollowCount 减少用户关注数
+func (d *UserDAO) DecrementFollowCount(ctx context.Context, userID uint) error {
+	err := d.db.WithContext(ctx).
+		Model(&model.User{}).
+		Where("id = ? AND follow_count > 0", userID).
+		UpdateColumn("follow_count", gorm.Expr("follow_count - ?", 1)).Error
+
+	if err != nil {
+		global.Logger.Error("dao.DecrementFollowCount.db_error",
+			zap.Uint("user_id", userID),
+			zap.Error(err),
+		)
+		return err
+	}
+
+	global.Logger.Info("dao.DecrementFollowCount.success",
+		zap.Uint("user_id", userID),
+	)
+
+	return nil
+}
+
+// IncrementFollowerCount 增加用户粉丝数
+func (d *UserDAO) IncrementFollowerCount(ctx context.Context, userID uint) error {
+	err := d.db.WithContext(ctx).
+		Model(&model.User{}).
+		Where("id = ?", userID).
+		UpdateColumn("follower_count", gorm.Expr("follower_count + ?", 1)).Error
+
+	if err != nil {
+		global.Logger.Error("dao.IncrementFollowerCount.db_error",
+			zap.Uint("user_id", userID),
+			zap.Error(err),
+		)
+		return err
+	}
+
+	global.Logger.Info("dao.IncrementFollowerCount.success",
+		zap.Uint("user_id", userID),
+	)
+
+	return nil
+}
+
+// DecrementFollowerCount 减少用户粉丝数
+func (d *UserDAO) DecrementFollowerCount(ctx context.Context, userID uint) error {
+	err := d.db.WithContext(ctx).
+		Model(&model.User{}).
+		Where("id = ? AND follower_count > 0", userID).
+		UpdateColumn("follower_count", gorm.Expr("follower_count - ?", 1)).Error
+
+	if err != nil {
+		global.Logger.Error("dao.DecrementFollowerCount.db_error",
+			zap.Uint("user_id", userID),
+			zap.Error(err),
+		)
+		return err
+	}
+
+	global.Logger.Info("dao.DecrementFollowerCount.success",
+		zap.Uint("user_id", userID),
+	)
+
+	return nil
 }
