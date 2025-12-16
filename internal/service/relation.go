@@ -24,6 +24,8 @@ type IRelationService interface {
 	GetFollowerList(ctx context.Context, currentUserID, targetUserID uint) ([]*dto.UserInfo, error)
 	// GetFriendList 获取好友列表
 	GetFriendList(ctx context.Context, userID uint) ([]*dto.FriendInfo, error)
+	// IsFriend 判断两个用户是否为好友（双向关注）
+	IsFriend(ctx context.Context, userID1, userID2 uint) (bool, error)
 }
 
 // RelationService 关注服务实现
@@ -393,4 +395,35 @@ func (s *RelationService) GetFriendList(ctx context.Context, userID uint) ([]*dt
 	)
 
 	return friendList, nil
+}
+
+// IsFriend 判断两个用户是否为好友（双向关注）
+func (s *RelationService) IsFriend(ctx context.Context, userID1, userID2 uint) (bool, error) {
+	// 检查 userID1 是否关注 userID2
+	following, err := s.relationDAO.IsFollowing(ctx, userID1, userID2)
+	if err != nil {
+		global.Logger.Error("service.IsFriend.check_following_error",
+			zap.Uint("user_id_1", userID1),
+			zap.Uint("user_id_2", userID2),
+			zap.Error(err),
+		)
+		return false, fmt.Errorf("检查关注关系失败")
+	}
+
+	if !following {
+		return false, nil
+	}
+
+	// 检查 userID2 是否关注 userID1
+	followed, err := s.relationDAO.IsFollowing(ctx, userID2, userID1)
+	if err != nil {
+		global.Logger.Error("service.IsFriend.check_followed_error",
+			zap.Uint("user_id_1", userID1),
+			zap.Uint("user_id_2", userID2),
+			zap.Error(err),
+		)
+		return false, fmt.Errorf("检查关注关系失败")
+	}
+
+	return followed, nil
 }
