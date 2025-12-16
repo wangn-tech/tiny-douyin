@@ -49,4 +49,15 @@ func Init(r *gin.Engine) {
 		publishRouter.GET("/list", videoHandler.GetVideoList)
 	}
 
+	// 点赞路由
+	favoriteHandler := wire.InitFavoriteHandler()
+
+	// 点赞操作（需要登录）
+	favoriteRouter := apiRouter.Group("/favorite")
+	favoriteRouter.Use(middleware.JWTAuth())
+	{
+		favoriteRouter.POST("/action/", favoriteHandler.FavoriteAction)
+		favoriteRouter.GET("/list/", favoriteHandler.GetFavoriteList)
+	}
+
 }

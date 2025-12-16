@@ -28,12 +28,14 @@ var UploadSet = wire.NewSet(
 var DAOSet = wire.NewSet(
 	dao.NewUserDAO,
 	dao.NewVideoDAO,
+	dao.NewFavoriteDAO,
 )
 
 // ServiceSet Service 层 Provider Set（只注入 DAO）
 var ServiceSet = wire.NewSet(
 	service.NewUserService,
 	service.NewVideoService,
+	service.NewFavoriteService,
 	DAOSet,
 )
 
@@ -41,6 +43,7 @@ var ServiceSet = wire.NewSet(
 var HandlerSet = wire.NewSet(
 	handler.NewUserHandler,
 	handler.NewVideoHandler,
+	handler.NewFavoriteHandler,
 	ServiceSet,
 	UploadSet,
 )
@@ -76,6 +79,19 @@ func InitUploadWorker() upload.IUploadWorker {
 		dao.NewVideoDAO,
 		upload.NewUploadService,
 		upload.NewWorker,
+	)
+	return nil
+}
+
+// InitFavoriteHandler 初始化 FavoriteHandler（Wire 自动生成实现）
+func InitFavoriteHandler() *handler.FavoriteHandler {
+	wire.Build(
+		ProvideDB,
+		dao.NewUserDAO,
+		dao.NewVideoDAO,
+		dao.NewFavoriteDAO,
+		service.NewFavoriteService,
+		handler.NewFavoriteHandler,
 	)
 	return nil
 }
