@@ -45,8 +45,11 @@ type UserInfoResponse struct {
 
 // UserInfo 用户信息
 type UserInfo struct {
-	ID        uint   `json:"id"`
-	Username  string `json:"name"`
-	Avatar    string `json:"avatar"`
-	Signature string `json:"signature"`
+	ID            uint   `json:"id"`             // 用户ID
+	Username      string `json:"name"`           // 用户名
+	Avatar        string `json:"avatar"`         // 头像
+	Signature     string `json:"signature"`      // 个性签名
+	FollowCount   int64  `json:"follow_count"`   // 关注数
+	FollowerCount int64  `json:"follower_count"` // 粉丝数
+	IsFollow      bool   `json:"is_follow"`      // 是否关注（当前用户是否关注该用户）
 }

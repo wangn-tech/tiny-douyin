@@ -71,4 +71,17 @@ func Init(r *gin.Engine) {
 		commentRouter.GET("/list/", commentHandler.GetCommentList)
 	}
 
+	// 关注路由
+	relationHandler := wire.InitRelationHandler()
+
+	// 关注操作（需要登录）
+	relationRouter := apiRouter.Group("/relation")
+	relationRouter.Use(middleware.JWTAuth())
+	{
+		relationRouter.POST("/action/", relationHandler.RelationAction)
+		relationRouter.GET("/follow/list/", relationHandler.GetFollowList)
+		relationRouter.GET("/follower/list/", relationHandler.GetFollowerList)
+		relationRouter.GET("/friend/list/", relationHandler.GetFriendList)
+	}
+
 }
