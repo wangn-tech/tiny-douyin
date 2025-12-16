@@ -28,6 +28,7 @@ type VideoService struct {
 	videoDAO    dao.IVideoDAO
 	userDAO     dao.IUserDAO
 	favoriteDAO dao.IFavoriteDAO
+	relationDAO dao.IRelationDAO
 }
 
 // NewVideoService 创建 VideoService 实例
@@ -35,11 +36,13 @@ func NewVideoService(
 	videoDAO dao.IVideoDAO,
 	userDAO dao.IUserDAO,
 	favoriteDAO dao.IFavoriteDAO,
+	relationDAO dao.IRelationDAO,
 ) IVideoService {
 	return &VideoService{
 		videoDAO:    videoDAO,
 		userDAO:     userDAO,
 		favoriteDAO: favoriteDAO,
+		relationDAO: relationDAO,
 	}
 }
 
@@ -209,6 +212,27 @@ func (s *VideoService) buildVideoDTOList(ctx context.Context, videos []*model.Vi
 		favoriteMap = make(map[uint]bool)
 	}
 
+	// 批量查询当前用户对作者的关注状态（如果已登录）
+	var followMap map[uint]bool
+	if currentUserID > 0 {
+		authorIDList := make([]uint, 0, len(authorIDs))
+		for authorID := range authorIDs {
+			authorIDList = append(authorIDList, authorID)
+		}
+		var err error
+		followMap, err = s.relationDAO.BatchCheckFollowing(ctx, currentUserID, authorIDList)
+		if err != nil {
+			global.Logger.Error("service.buildVideoDTOList.batch_check_following_error",
+				zap.Uint("current_user_id", currentUserID),
+				zap.Error(err),
+			)
+			// 不阻断流程，继续处理
+			followMap = make(map[uint]bool)
+		}
+	} else {
+		followMap = make(map[uint]bool)
+	}
+
 	// 组装视频DTO
 	for _, video := range videos {
 		author := authorMap[video.AuthorID]
@@ -222,10 +246,13 @@ func (s *VideoService) buildVideoDTOList(ctx context.Context, videos []*model.Vi
 			CoverURL: video.CoverURL,
 			Title:    video.Title,
 			Author: dto.UserInfo{
-				ID:        author.ID,
-				Username:  author.Username,
-				Avatar:    author.Avatar,
-				Signature: author.Signature,
+				ID:            author.ID,
+				Username:      author.Username,
+				Avatar:        author.Avatar,
+				Signature:     author.Signature,
+				FollowCount:   author.FollowCount,
+				FollowerCount: author.FollowerCount,
+				IsFollow:      followMap[author.ID],
 			},
 			FavoriteCount: video.FavoriteCount,
 			CommentCount:  video.CommentCount,

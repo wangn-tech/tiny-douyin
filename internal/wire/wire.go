@@ -59,6 +59,7 @@ func InitUserHandler() *handler.UserHandler {
 	wire.Build(
 		ProvideDB,
 		dao.NewUserDAO,
+		dao.NewRelationDAO,
 		service.NewUserService,
 		handler.NewUserHandler,
 	)
@@ -72,6 +73,7 @@ func InitVideoHandler() *handler.VideoHandler {
 		dao.NewUserDAO,
 		dao.NewVideoDAO,
 		dao.NewFavoriteDAO,
+		dao.NewRelationDAO,
 		service.NewVideoService,
 		upload.NewUploadService,
 		handler.NewVideoHandler,
@@ -97,6 +99,7 @@ func InitFavoriteHandler() *handler.FavoriteHandler {
 		dao.NewUserDAO,
 		dao.NewVideoDAO,
 		dao.NewFavoriteDAO,
+		dao.NewRelationDAO,
 		service.NewFavoriteService,
 		handler.NewFavoriteHandler,
 	)

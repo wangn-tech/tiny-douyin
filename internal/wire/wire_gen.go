@@ -22,7 +22,8 @@ import (
 func InitUserHandler() *handler.UserHandler {
 	db := ProvideDB()
 	iUserDAO := dao.NewUserDAO(db)
-	iUserService := service.NewUserService(iUserDAO)
+	iRelationDAO := dao.NewRelationDAO(db)
+	iUserService := service.NewUserService(iUserDAO, iRelationDAO)
 	userHandler := handler.NewUserHandler(iUserService)
 	return userHandler
 }
@@ -33,7 +34,8 @@ func InitVideoHandler() *handler.VideoHandler {
 	iVideoDAO := dao.NewVideoDAO(db)
 	iUserDAO := dao.NewUserDAO(db)
 	iFavoriteDAO := dao.NewFavoriteDAO(db)
-	iVideoService := service.NewVideoService(iVideoDAO, iUserDAO, iFavoriteDAO)
+	iRelationDAO := dao.NewRelationDAO(db)
+	iVideoService := service.NewVideoService(iVideoDAO, iUserDAO, iFavoriteDAO, iRelationDAO)
 	iUploadService := upload.NewUploadService()
 	videoHandler := handler.NewVideoHandler(iVideoService, iUploadService)
 	return videoHandler
@@ -54,7 +56,8 @@ func InitFavoriteHandler() *handler.FavoriteHandler {
 	iFavoriteDAO := dao.NewFavoriteDAO(db)
 	iVideoDAO := dao.NewVideoDAO(db)
 	iUserDAO := dao.NewUserDAO(db)
-	iFavoriteService := service.NewFavoriteService(iFavoriteDAO, iVideoDAO, iUserDAO)
+	iRelationDAO := dao.NewRelationDAO(db)
+	iFavoriteService := service.NewFavoriteService(iFavoriteDAO, iVideoDAO, iUserDAO, iRelationDAO)
 	favoriteHandler := handler.NewFavoriteHandler(iFavoriteService)
 	return favoriteHandler
 }

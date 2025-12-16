@@ -151,9 +151,15 @@ func (h *UserHandler) GetUserInfo(c *gin.Context) {
 		zap.String("client_ip", c.ClientIP()),
 	)
 
+	// 获取当前用户ID（可选，用于判断关注状态）
+	currentUserID := uint(0)
+	if id, exists := c.Get("user_id"); exists {
+		currentUserID = id.(uint)
+	}
+
 	// 2. 调用 Service 层处理业务逻辑
 	req := &dto.UserInfoRequest{UserID: uint(userID)}
-	user, err := h.userService.GetUserInfo(ctx, req)
+	user, err := h.userService.GetUserInfo(ctx, currentUserID, req)
 	if err != nil {
 		global.Logger.Error("handler.GetUserInfo.service_error",
 			zap.Uint64("user_id", userID),

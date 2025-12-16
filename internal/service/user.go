@@ -19,24 +19,29 @@ import (
 type IUserService interface {
 	Register(ctx context.Context, req *dto.UserRegisterRequest) (*dto.UserRegisterResponse, error)
 	Login(ctx context.Context, req *dto.UserLoginRequest) (*dto.UserLoginResponse, error)
-	GetUserInfo(ctx context.Context, req *dto.UserInfoRequest) (*dto.UserInfo, error)
+	GetUserInfo(ctx context.Context, currentUserID uint, req *dto.UserInfoRequest) (*dto.UserInfo, error)
 }
 
 // UserService 用户服务实现
 type UserService struct {
-	userDAO dao.IUserDAO
+	userDAO     dao.IUserDAO
+	relationDAO dao.IRelationDAO
 }
 
 // NewUserService 创建 UserService 实例（依赖注入）
-func NewUserService(userDAO dao.IUserDAO) IUserService {
+func NewUserService(userDAO dao.IUserDAO, relationDAO dao.IRelationDAO) IUserService {
 	return &UserService{
-		userDAO: userDAO,
+		userDAO:     userDAO,
+		relationDAO: relationDAO,
 	}
 }
 
 // NewUserServiceDefault 创建默认配置的 UserService（便捷方法）
 func NewUserServiceDefault() IUserService {
-	return NewUserService(dao.NewUserDAO(global.DB))
+	return NewUserService(
+		dao.NewUserDAO(global.DB),
+		dao.NewRelationDAO(global.DB),
+	)
 }
 
 // Register 用户注册
@@ -164,11 +169,12 @@ func (s *UserService) Login(ctx context.Context, req *dto.UserLoginRequest) (*dt
 }
 
 // GetUserInfo 获取用户信息
-func (s *UserService) GetUserInfo(ctx context.Context, req *dto.UserInfoRequest) (*dto.UserInfo, error) {
+func (s *UserService) GetUserInfo(ctx context.Context, currentUserID uint, req *dto.UserInfoRequest) (*dto.UserInfo, error) {
 	start := time.Now()
 
 	global.Logger.Info("service.GetUserInfo.start",
 		zap.Uint("user_id", req.UserID),
+		zap.Uint("current_user_id", currentUserID),
 	)
 
 	user, err := s.userDAO.GetUserByID(ctx, req.UserID)
@@ -186,15 +192,34 @@ func (s *UserService) GetUserInfo(ctx context.Context, req *dto.UserInfoRequest)
 		return nil, err
 	}
 
+	// 查询当前用户是否关注了该用户
+	isFollow := false
+	if currentUserID > 0 && currentUserID != req.UserID {
+		isFollow, err = s.relationDAO.IsFollowing(ctx, currentUserID, req.UserID)
+		if err != nil {
+			global.Logger.Error("service.GetUserInfo.check_following_error",
+				zap.Uint("current_user_id", currentUserID),
+				zap.Uint("target_user_id", req.UserID),
+				zap.Error(err),
+			)
+			// 不阻断流程，继续处理
+			isFollow = false
+		}
+	}
+
 	global.Logger.Info("service.GetUserInfo.success",
 		zap.Uint("user_id", req.UserID),
+		zap.Bool("is_follow", isFollow),
 		zap.Duration("duration", time.Since(start)),
 	)
 
 	return &dto.UserInfo{
-		ID:        user.ID,
-		Username:  user.Username,
-		Avatar:    user.Avatar,
-		Signature: user.Signature,
+		ID:            user.ID,
+		Username:      user.Username,
+		Avatar:        user.Avatar,
+		Signature:     user.Signature,
+		FollowCount:   user.FollowCount,
+		FollowerCount: user.FollowerCount,
+		IsFollow:      isFollow,
 	}, nil
 }
