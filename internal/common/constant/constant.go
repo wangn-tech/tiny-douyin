@@ -55,3 +55,11 @@ const (
 	// LogFileName 日志文件名
 	LogFileName = "tiny-douyin.log"
 )
+
+// 点赞操作类型
+const (
+	// FavoriteActionLike 点赞
+	FavoriteActionLike = 1
+	// FavoriteActionUnlike 取消点赞
+	FavoriteActionUnlike = 2
+)
