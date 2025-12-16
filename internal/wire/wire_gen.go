@@ -78,7 +78,8 @@ func InitRelationHandler() *handler.RelationHandler {
 	db := ProvideDB()
 	iRelationDAO := dao.NewRelationDAO(db)
 	iUserDAO := dao.NewUserDAO(db)
-	iRelationService := service.NewRelationService(iRelationDAO, iUserDAO, db)
+	iMessageDAO := dao.NewMessageDAO(db)
+	iRelationService := service.NewRelationService(iRelationDAO, iUserDAO, iMessageDAO, db)
 	relationHandler := handler.NewRelationHandler(iRelationService)
 	return relationHandler
 }
@@ -89,7 +90,7 @@ func InitMessageHandler() *handler.MessageHandler {
 	iMessageDAO := dao.NewMessageDAO(db)
 	iUserDAO := dao.NewUserDAO(db)
 	iRelationDAO := dao.NewRelationDAO(db)
-	iRelationService := service.NewRelationService(iRelationDAO, iUserDAO, db)
+	iRelationService := service.NewRelationService(iRelationDAO, iUserDAO, iMessageDAO, db)
 	iMessageService := service.NewMessageService(iMessageDAO, iUserDAO, iRelationService)
 	messageHandler := handler.NewMessageHandler(iMessageService)
 	return messageHandler

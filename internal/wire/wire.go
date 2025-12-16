@@ -128,6 +128,7 @@ func InitRelationHandler() *handler.RelationHandler {
 		ProvideDB,
 		dao.NewUserDAO,
 		dao.NewRelationDAO,
+		dao.NewMessageDAO,
 		service.NewRelationService,
 		handler.NewRelationHandler,
 	)

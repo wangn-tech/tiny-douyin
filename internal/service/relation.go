@@ -32,6 +32,7 @@ type IRelationService interface {
 type RelationService struct {
 	relationDAO dao.IRelationDAO
 	userDAO     dao.IUserDAO
+	messageDAO  dao.IMessageDAO
 	db          *gorm.DB
 }
 
@@ -39,11 +40,13 @@ type RelationService struct {
 func NewRelationService(
 	relationDAO dao.IRelationDAO,
 	userDAO dao.IUserDAO,
+	messageDAO dao.IMessageDAO,
 	db *gorm.DB,
 ) IRelationService {
 	return &RelationService{
 		relationDAO: relationDAO,
 		userDAO:     userDAO,
+		messageDAO:  messageDAO,
 		db:          db,
 	}
 }
@@ -383,9 +386,30 @@ func (s *RelationService) GetFriendList(ctx context.Context, userID uint) ([]*dt
 				FollowerCount: user.FollowerCount,
 				IsFollow:      true, // 好友必定是互相关注的
 			},
-			Message: "", // 暂时为空，等消息模块实现后再填充
-			MsgType: 0,  // 暂时为0
+			Message: "", // 默认为空
+			MsgType: 0,  // 默认为0：当前用户接收的消息
 		}
+
+		// 获取与该好友的最新一条消息
+		latestMsg, err := s.messageDAO.GetLatestMessage(ctx, userID, user.ID)
+		if err != nil {
+			// 查询失败不阻断流程，只记录日志
+			global.Logger.Warn("service.GetFriendList.get_latest_message_error",
+				zap.Uint("user_id", userID),
+				zap.Uint("friend_id", user.ID),
+				zap.Error(err),
+			)
+		} else if latestMsg != nil {
+			// 填充最新消息
+			friendInfo.Message = latestMsg.Content
+			// 判断消息类型：0-当前用户接收的消息，1-当前用户发送的消息
+			if latestMsg.FromUserID == userID {
+				friendInfo.MsgType = 1 // 当前用户发送的
+			} else {
+				friendInfo.MsgType = 0 // 当前用户接收的
+			}
+		}
+
 		friendList = append(friendList, friendInfo)
 	}
 
