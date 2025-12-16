@@ -32,6 +32,12 @@ const (
 	ErrAlreadyFavorited  = 5002
 	ErrNotFavorited      = 5003
 
+	// Relation 6xxx
+	ErrCannotFollowSelf = 6001
+	ErrAlreadyFollowed  = 6002
+	ErrNotFollowed      = 6003
+	ErrNotFriend        = 6004
+
 	// System 9xxx
 	ErrInternalServer = 9001
 	ErrDatabaseError  = 9002
@@ -58,6 +64,10 @@ var ErrMsg = map[int32]string{
 	ErrInvalidActionType:       "无效的操作类型",
 	ErrAlreadyFavorited:        "已经点赞过",
 	ErrNotFavorited:            "未点赞",
+	ErrCannotFollowSelf:        "不能关注自己",
+	ErrAlreadyFollowed:         "已经关注过",
+	ErrNotFollowed:             "未关注",
+	ErrNotFriend:               "不是好友关系",
 	ErrInternalServer:          "服务器错误",
 	ErrDatabaseError:           "数据库错误",
 }

@@ -28,6 +28,7 @@ type FavoriteService struct {
 	favoriteDAO dao.IFavoriteDAO
 	videoDAO    dao.IVideoDAO
 	userDAO     dao.IUserDAO
+	relationDAO dao.IRelationDAO
 }
 
 // NewFavoriteService 创建 FavoriteService 实例
@@ -35,11 +36,13 @@ func NewFavoriteService(
 	favoriteDAO dao.IFavoriteDAO,
 	videoDAO dao.IVideoDAO,
 	userDAO dao.IUserDAO,
+	relationDAO dao.IRelationDAO,
 ) IFavoriteService {
 	return &FavoriteService{
 		favoriteDAO: favoriteDAO,
 		videoDAO:    videoDAO,
 		userDAO:     userDAO,
+		relationDAO: relationDAO,
 	}
 }
 
@@ -255,10 +258,13 @@ func (s *FavoriteService) buildVideoDTOListFromModels(ctx context.Context, video
 		}
 		if user != nil {
 			authorMap[authorID] = &dto.UserInfo{
-				ID:        user.ID,
-				Username:  user.Username,
-				Avatar:    user.Avatar,
-				Signature: user.Signature,
+				ID:            user.ID,
+				Username:      user.Username,
+				Avatar:        user.Avatar,
+				Signature:     user.Signature,
+				FollowCount:   user.FollowCount,
+				FollowerCount: user.FollowerCount,
+				IsFollow:      false, // 稍后批量更新
 			}
 		}
 	}
@@ -278,6 +284,27 @@ func (s *FavoriteService) buildVideoDTOListFromModels(ctx context.Context, video
 		}
 	} else {
 		favoriteMap = make(map[uint]bool)
+	}
+
+	// 批量查询当前用户对作者的关注状态（如果已登录）
+	if currentUserID > 0 {
+		authorIDList := make([]uint, 0, len(authorIDs))
+		for authorID := range authorIDs {
+			authorIDList = append(authorIDList, authorID)
+		}
+		followMap, err := s.relationDAO.BatchCheckFollowing(ctx, currentUserID, authorIDList)
+		if err != nil {
+			global.Logger.Error("service.buildVideoDTOListFromModels.batch_check_following_error",
+				zap.Uint("current_user_id", currentUserID),
+				zap.Error(err),
+			)
+			// 不阻断流程，继续处理
+		} else {
+			// 更新作者的关注状态
+			for authorID, author := range authorMap {
+				author.IsFollow = followMap[authorID]
+			}
+		}
 	}
 
 	// 组装视频DTO

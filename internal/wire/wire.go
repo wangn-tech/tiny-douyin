@@ -30,6 +30,7 @@ var DAOSet = wire.NewSet(
 	dao.NewVideoDAO,
 	dao.NewFavoriteDAO,
 	dao.NewCommentDAO,
+	dao.NewRelationDAO,
 )
 
 // ServiceSet Service 层 Provider Set（只注入 DAO）
@@ -38,6 +39,7 @@ var ServiceSet = wire.NewSet(
 	service.NewVideoService,
 	service.NewFavoriteService,
 	service.NewCommentService,
+	service.NewRelationService,
 	DAOSet,
 )
 
@@ -47,6 +49,7 @@ var HandlerSet = wire.NewSet(
 	handler.NewVideoHandler,
 	handler.NewFavoriteHandler,
 	handler.NewCommentHandler,
+	handler.NewRelationHandler,
 	ServiceSet,
 	UploadSet,
 )
@@ -56,6 +59,7 @@ func InitUserHandler() *handler.UserHandler {
 	wire.Build(
 		ProvideDB,
 		dao.NewUserDAO,
+		dao.NewRelationDAO,
 		service.NewUserService,
 		handler.NewUserHandler,
 	)
@@ -69,6 +73,7 @@ func InitVideoHandler() *handler.VideoHandler {
 		dao.NewUserDAO,
 		dao.NewVideoDAO,
 		dao.NewFavoriteDAO,
+		dao.NewRelationDAO,
 		service.NewVideoService,
 		upload.NewUploadService,
 		handler.NewVideoHandler,
@@ -94,6 +99,7 @@ func InitFavoriteHandler() *handler.FavoriteHandler {
 		dao.NewUserDAO,
 		dao.NewVideoDAO,
 		dao.NewFavoriteDAO,
+		dao.NewRelationDAO,
 		service.NewFavoriteService,
 		handler.NewFavoriteHandler,
 	)
@@ -109,6 +115,18 @@ func InitCommentHandler() *handler.CommentHandler {
 		dao.NewCommentDAO,
 		service.NewCommentService,
 		handler.NewCommentHandler,
+	)
+	return nil
+}
+
+// InitRelationHandler 初始化 RelationHandler（Wire 自动生成实现）
+func InitRelationHandler() *handler.RelationHandler {
+	wire.Build(
+		ProvideDB,
+		dao.NewUserDAO,
+		dao.NewRelationDAO,
+		service.NewRelationService,
+		handler.NewRelationHandler,
 	)
 	return nil
 }

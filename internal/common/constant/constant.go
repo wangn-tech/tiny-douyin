@@ -77,3 +77,11 @@ const (
 	// CommentMaxLength 评论内容最大长度
 	CommentMaxLength = 255
 )
+
+// 关注操作类型
+const (
+	// RelationActionFollow 关注
+	RelationActionFollow = 1
+	// RelationActionUnfollow 取消关注
+	RelationActionUnfollow = 2
+)

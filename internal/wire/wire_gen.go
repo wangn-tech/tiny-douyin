@@ -22,7 +22,8 @@ import (
 func InitUserHandler() *handler.UserHandler {
 	db := ProvideDB()
 	iUserDAO := dao.NewUserDAO(db)
-	iUserService := service.NewUserService(iUserDAO)
+	iRelationDAO := dao.NewRelationDAO(db)
+	iUserService := service.NewUserService(iUserDAO, iRelationDAO)
 	userHandler := handler.NewUserHandler(iUserService)
 	return userHandler
 }
@@ -33,7 +34,8 @@ func InitVideoHandler() *handler.VideoHandler {
 	iVideoDAO := dao.NewVideoDAO(db)
 	iUserDAO := dao.NewUserDAO(db)
 	iFavoriteDAO := dao.NewFavoriteDAO(db)
-	iVideoService := service.NewVideoService(iVideoDAO, iUserDAO, iFavoriteDAO)
+	iRelationDAO := dao.NewRelationDAO(db)
+	iVideoService := service.NewVideoService(iVideoDAO, iUserDAO, iFavoriteDAO, iRelationDAO)
 	iUploadService := upload.NewUploadService()
 	videoHandler := handler.NewVideoHandler(iVideoService, iUploadService)
 	return videoHandler
@@ -54,7 +56,8 @@ func InitFavoriteHandler() *handler.FavoriteHandler {
 	iFavoriteDAO := dao.NewFavoriteDAO(db)
 	iVideoDAO := dao.NewVideoDAO(db)
 	iUserDAO := dao.NewUserDAO(db)
-	iFavoriteService := service.NewFavoriteService(iFavoriteDAO, iVideoDAO, iUserDAO)
+	iRelationDAO := dao.NewRelationDAO(db)
+	iFavoriteService := service.NewFavoriteService(iFavoriteDAO, iVideoDAO, iUserDAO, iRelationDAO)
 	favoriteHandler := handler.NewFavoriteHandler(iFavoriteService)
 	return favoriteHandler
 }
@@ -70,6 +73,16 @@ func InitCommentHandler() *handler.CommentHandler {
 	return commentHandler
 }
 
+// InitRelationHandler 初始化 RelationHandler（Wire 自动生成实现）
+func InitRelationHandler() *handler.RelationHandler {
+	db := ProvideDB()
+	iRelationDAO := dao.NewRelationDAO(db)
+	iUserDAO := dao.NewUserDAO(db)
+	iRelationService := service.NewRelationService(iRelationDAO, iUserDAO, db)
+	relationHandler := handler.NewRelationHandler(iRelationService)
+	return relationHandler
+}
+
 // wire.go:
 
 // ProvideDB 提供数据库连接
@@ -81,12 +94,12 @@ func ProvideDB() *gorm.DB {
 var UploadSet = wire.NewSet(upload.NewUploadService, upload.NewWorker)
 
 // DAOSet DAO 层 Provider Set（只注入 DB）
-var DAOSet = wire.NewSet(dao.NewUserDAO, dao.NewVideoDAO, dao.NewFavoriteDAO, dao.NewCommentDAO)
+var DAOSet = wire.NewSet(dao.NewUserDAO, dao.NewVideoDAO, dao.NewFavoriteDAO, dao.NewCommentDAO, dao.NewRelationDAO)
 
 // ServiceSet Service 层 Provider Set（只注入 DAO）
-var ServiceSet = wire.NewSet(service.NewUserService, service.NewVideoService, service.NewFavoriteService, service.NewCommentService, DAOSet)
+var ServiceSet = wire.NewSet(service.NewUserService, service.NewVideoService, service.NewFavoriteService, service.NewCommentService, service.NewRelationService, DAOSet)
 
 // HandlerSet Handler 层 Provider Set（只注入 Service 和 Upload）
-var HandlerSet = wire.NewSet(handler.NewUserHandler, handler.NewVideoHandler, handler.NewFavoriteHandler, handler.NewCommentHandler, ServiceSet,
+var HandlerSet = wire.NewSet(handler.NewUserHandler, handler.NewVideoHandler, handler.NewFavoriteHandler, handler.NewCommentHandler, handler.NewRelationHandler, ServiceSet,
 	UploadSet,
 )
