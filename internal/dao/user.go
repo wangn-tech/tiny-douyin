@@ -15,6 +15,7 @@ type IUserDAO interface {
 	GetUserByUsername(ctx context.Context, username string) (*model.User, error)
 	GetUserByID(ctx context.Context, id uint) (*model.User, error)
 	ExistsUsername(ctx context.Context, username string) (bool, error)
+	GetUsersByIDs(ctx context.Context, userIDs []uint) ([]*model.User, error)
 }
 
 // UserDAO 用户数据访问实现
@@ -102,4 +103,30 @@ func (d *UserDAO) GetUserByID(ctx context.Context, id uint) (*model.User, error)
 		return nil, err
 	}
 	return &user, nil
+}
+
+// GetUsersByIDs 批量查询用户信息
+func (d *UserDAO) GetUsersByIDs(ctx context.Context, userIDs []uint) ([]*model.User, error) {
+	if len(userIDs) == 0 {
+		return []*model.User{}, nil
+	}
+
+	var users []*model.User
+	err := d.db.WithContext(ctx).
+		Where("id IN ?", userIDs).
+		Find(&users).Error
+
+	if err != nil {
+		global.Logger.Error("dao.GetUsersByIDs.db_error",
+			zap.Any("user_ids", userIDs),
+			zap.Error(err),
+		)
+		return nil, err
+	}
+
+	global.Logger.Info("dao.GetUsersByIDs.success",
+		zap.Int("count", len(users)),
+	)
+
+	return users, nil
 }
