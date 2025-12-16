@@ -27,6 +27,10 @@ type IVideoDAO interface {
 	IncrementFavoriteCount(ctx context.Context, videoID uint) error
 	// DecrementFavoriteCount 减少视频点赞数
 	DecrementFavoriteCount(ctx context.Context, videoID uint) error
+	// IncrementCommentCount 增加视频评论数
+	IncrementCommentCount(ctx context.Context, videoID uint) error
+	// DecrementCommentCount 减少视频评论数
+	DecrementCommentCount(ctx context.Context, videoID uint) error
 }
 
 // VideoDAO 视频数据访问实现
@@ -186,6 +190,50 @@ func (d *VideoDAO) DecrementFavoriteCount(ctx context.Context, videoID uint) err
 	}
 
 	global.Logger.Info("dao.DecrementFavoriteCount.success",
+		zap.Uint("video_id", videoID),
+	)
+
+	return nil
+}
+
+// IncrementCommentCount 增加视频评论数
+func (d *VideoDAO) IncrementCommentCount(ctx context.Context, videoID uint) error {
+	err := d.db.WithContext(ctx).
+		Model(&model.Video{}).
+		Where("id = ?", videoID).
+		UpdateColumn("comment_count", gorm.Expr("comment_count + ?", 1)).Error
+
+	if err != nil {
+		global.Logger.Error("dao.IncrementCommentCount.db_error",
+			zap.Uint("video_id", videoID),
+			zap.Error(err),
+		)
+		return err
+	}
+
+	global.Logger.Info("dao.IncrementCommentCount.success",
+		zap.Uint("video_id", videoID),
+	)
+
+	return nil
+}
+
+// DecrementCommentCount 减少视频评论数
+func (d *VideoDAO) DecrementCommentCount(ctx context.Context, videoID uint) error {
+	err := d.db.WithContext(ctx).
+		Model(&model.Video{}).
+		Where("id = ? AND comment_count > 0", videoID).
+		UpdateColumn("comment_count", gorm.Expr("comment_count - ?", 1)).Error
+
+	if err != nil {
+		global.Logger.Error("dao.DecrementCommentCount.db_error",
+			zap.Uint("video_id", videoID),
+			zap.Error(err),
+		)
+		return err
+	}
+
+	global.Logger.Info("dao.DecrementCommentCount.success",
 		zap.Uint("video_id", videoID),
 	)
 

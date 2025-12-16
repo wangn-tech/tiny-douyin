@@ -23,7 +23,9 @@ const (
 	ErrVideoProcessFailed = 3004
 
 	// Comment 4xxx
-	ErrCommentNotFound = 4001
+	ErrCommentNotFound          = 4001
+	ErrCommentPermissionDenied  = 4002
+	ErrCommentTooLong           = 4003
 
 	// Favorite 5xxx
 	ErrInvalidActionType = 5001
@@ -51,6 +53,8 @@ var ErrMsg = map[int32]string{
 	ErrVideoFileInvalid:   "视频文件无效",
 	ErrVideoProcessFailed: "视频处理失败",
 	ErrCommentNotFound:    "评论不存在",
+	ErrCommentPermissionDenied: "无权限删除评论",
+	ErrCommentTooLong:     "评论内容过长",
 	ErrInvalidActionType:  "无效的操作类型",
 	ErrAlreadyFavorited:   "已经点赞过",
 	ErrNotFavorited:       "未点赞",
