@@ -34,6 +34,12 @@ go.work.sum
 # 开发进度
 skills.md
 docs/
+public/
+script/
 
 # 编译程序
 tiny-douyin
+# 临时文件和日志
+tmp/
+*.log
+*.pid

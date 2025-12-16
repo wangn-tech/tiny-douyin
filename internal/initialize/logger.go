@@ -2,6 +2,7 @@ package initialize
 
 import (
 	"os"
+	"path/filepath"
 
 	"github.com/wangn-tech/tiny-douyin/internal/config"
 	"go.uber.org/zap"
@@ -36,12 +37,19 @@ func LoggerSetup(c config.LogConfig) *zap.Logger {
 	case "stderr":
 		ws = zapcore.AddSync(os.Stderr)
 	case "file":
-		f, err := os.OpenFile(c.FilePath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
-		if err != nil {
-			// 回退到 stdout
+		// 确保日志目录存在
+		logDir := filepath.Dir(c.FilePath)
+		if err := os.MkdirAll(logDir, 0755); err != nil {
+			// 目录创建失败，回退到 stdout
 			ws = zapcore.AddSync(os.Stdout)
 		} else {
-			ws = zapcore.AddSync(f)
+			f, err := os.OpenFile(c.FilePath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+			if err != nil {
+				// 文件打开失败，回退到 stdout
+				ws = zapcore.AddSync(os.Stdout)
+			} else {
+				ws = zapcore.AddSync(f)
+			}
 		}
 	default:
 		ws = zapcore.AddSync(os.Stdout)

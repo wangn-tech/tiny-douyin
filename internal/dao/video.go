@@ -1,0 +1,116 @@
+package dao
+
+import (
+	"context"
+
+	"github.com/wangn-tech/tiny-douyin/internal/global"
+	"github.com/wangn-tech/tiny-douyin/internal/model"
+	"go.uber.org/zap"
+	"gorm.io/gorm"
+)
+
+// IVideoDAO 视频数据访问接口
+type IVideoDAO interface {
+	// CreateVideo 创建视频
+	CreateVideo(ctx context.Context, video *model.Video) error
+	// GetVideoByID 根据ID查询视频
+	GetVideoByID(ctx context.Context, id uint) (*model.Video, error)
+	// GetVideosByUserID 根据用户ID查询视频列表
+	GetVideosByUserID(ctx context.Context, userID uint) ([]*model.Video, error)
+	// GetVideoFeed 获取视频流（按时间倒序）
+	GetVideoFeed(ctx context.Context, latestTime int64, limit int) ([]*model.Video, error)
+	// UpdateVideo 更新视频信息
+	UpdateVideo(ctx context.Context, video *model.Video) error
+}
+
+// VideoDAO 视频数据访问实现
+type VideoDAO struct {
+	db *gorm.DB
+}
+
+// NewVideoDAO 创建 VideoDAO 实例
+func NewVideoDAO(db *gorm.DB) IVideoDAO {
+	return &VideoDAO{db: db}
+}
+
+// CreateVideo 创建视频
+func (d *VideoDAO) CreateVideo(ctx context.Context, video *model.Video) error {
+	err := d.db.WithContext(ctx).Create(video).Error
+	if err != nil {
+		global.Logger.Error("dao.CreateVideo.db_error",
+			zap.Uint("author_id", video.AuthorID),
+			zap.String("title", video.Title),
+			zap.Error(err),
+		)
+		return err
+	}
+	return nil
+}
+
+// GetVideoByID 根据ID查询视频
+func (d *VideoDAO) GetVideoByID(ctx context.Context, id uint) (*model.Video, error) {
+	var video model.Video
+	err := d.db.WithContext(ctx).First(&video, id).Error
+	if err != nil {
+		global.Logger.Error("dao.GetVideoByID.db_error",
+			zap.Uint("video_id", id),
+			zap.Error(err),
+		)
+		return nil, err
+	}
+	return &video, nil
+}
+
+// GetVideosByUserID 根据用户ID查询视频列表
+func (d *VideoDAO) GetVideosByUserID(ctx context.Context, userID uint) ([]*model.Video, error) {
+	var videos []*model.Video
+	err := d.db.WithContext(ctx).
+		Where("author_id = ?", userID).
+		Order("created_at DESC").
+		Find(&videos).Error
+	if err != nil {
+		global.Logger.Error("dao.GetVideosByUserID.db_error",
+			zap.Uint("user_id", userID),
+			zap.Error(err),
+		)
+		return nil, err
+	}
+	return videos, nil
+}
+
+// GetVideoFeed 获取视频流（按时间倒序）
+// latestTime: Unix时间戳（秒），返回比该时间更早的视频
+// limit: 限制返回数量
+func (d *VideoDAO) GetVideoFeed(ctx context.Context, latestTime int64, limit int) ([]*model.Video, error) {
+	var videos []*model.Video
+	query := d.db.WithContext(ctx).Order("created_at DESC")
+
+	// 如果提供了 latestTime，则只返回比该时间更早的视频
+	if latestTime > 0 {
+		query = query.Where("UNIX_TIMESTAMP(created_at) < ?", latestTime)
+	}
+
+	err := query.Limit(limit).Find(&videos).Error
+	if err != nil {
+		global.Logger.Error("dao.GetVideoFeed.db_error",
+			zap.Int64("latest_time", latestTime),
+			zap.Int("limit", limit),
+			zap.Error(err),
+		)
+		return nil, err
+	}
+	return videos, nil
+}
+
+// UpdateVideo 更新视频信息
+func (d *VideoDAO) UpdateVideo(ctx context.Context, video *model.Video) error {
+	err := d.db.WithContext(ctx).Save(video).Error
+	if err != nil {
+		global.Logger.Error("dao.UpdateVideo.db_error",
+			zap.Uint("video_id", video.ID),
+			zap.Error(err),
+		)
+		return err
+	}
+	return nil
+}

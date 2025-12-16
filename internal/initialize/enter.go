@@ -20,4 +20,10 @@ func InitAll() {
 
 	// Redis
 	global.RedisClient = InitRedis()
+
+	// MinIO
+	global.MinIOClient = InitMinIO(&global.Config.MinIO)
+
+	// RabbitMQ
+	global.RabbitConn, global.RabbitChan = InitRabbitMQ(&global.Config.RabbitMQ)
 }

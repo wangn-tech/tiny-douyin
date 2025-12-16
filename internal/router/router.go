@@ -35,4 +35,18 @@ func Init(r *gin.Engine) {
 		userRouter.GET("/", middleware.JWTAuthOptional(), userHandler.GetUserInfo)
 	}
 
+	// 视频路由
+	videoHandler := wire.InitVideoHandler()
+
+	// 视频流（可选登录，传 token 可获取点赞状态）
+	apiRouter.GET("/feed", middleware.JWTAuthOptional(), videoHandler.GetVideoFeed)
+
+	// 视频发布（需要登录）
+	publishRouter := apiRouter.Group("/publish")
+	publishRouter.Use(middleware.JWTAuth())
+	{
+		publishRouter.POST("/action", videoHandler.PublishVideo)
+		publishRouter.GET("/list", videoHandler.GetVideoList)
+	}
+
 }

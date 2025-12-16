@@ -11,6 +11,7 @@ import (
 	"github.com/wangn-tech/tiny-douyin/internal/api/handler"
 	"github.com/wangn-tech/tiny-douyin/internal/dao"
 	"github.com/wangn-tech/tiny-douyin/internal/global"
+	"github.com/wangn-tech/tiny-douyin/internal/pkg/upload"
 	"github.com/wangn-tech/tiny-douyin/internal/service"
 	"gorm.io/gorm"
 )
@@ -26,6 +27,26 @@ func InitUserHandler() *handler.UserHandler {
 	return userHandler
 }
 
+// InitVideoHandler 初始化 VideoHandler（Wire 自动生成实现）
+func InitVideoHandler() *handler.VideoHandler {
+	db := ProvideDB()
+	iVideoDAO := dao.NewVideoDAO(db)
+	iUserDAO := dao.NewUserDAO(db)
+	iVideoService := service.NewVideoService(iVideoDAO, iUserDAO)
+	iUploadService := upload.NewUploadService()
+	videoHandler := handler.NewVideoHandler(iVideoService, iUploadService)
+	return videoHandler
+}
+
+// InitUploadWorker 初始化 UploadWorker（Wire 自动生成实现）
+func InitUploadWorker() upload.IUploadWorker {
+	iUploadService := upload.NewUploadService()
+	db := ProvideDB()
+	iVideoDAO := dao.NewVideoDAO(db)
+	iUploadWorker := upload.NewWorker(iUploadService, iVideoDAO)
+	return iUploadWorker
+}
+
 // wire.go:
 
 // ProvideDB 提供数据库连接
@@ -33,11 +54,16 @@ func ProvideDB() *gorm.DB {
 	return global.DB
 }
 
+// UploadSet Upload 层 Provider Set
+var UploadSet = wire.NewSet(upload.NewUploadService, upload.NewWorker)
+
 // DAOSet DAO 层 Provider Set（只注入 DB）
-var DAOSet = wire.NewSet(dao.NewUserDAO)
+var DAOSet = wire.NewSet(dao.NewUserDAO, dao.NewVideoDAO)
 
 // ServiceSet Service 层 Provider Set（只注入 DAO）
-var ServiceSet = wire.NewSet(service.NewUserService, DAOSet)
+var ServiceSet = wire.NewSet(service.NewUserService, service.NewVideoService, DAOSet)
 
-// HandlerSet Handler 层 Provider Set（只注入 Service）
-var HandlerSet = wire.NewSet(handler.NewUserHandler, ServiceSet)
+// HandlerSet Handler 层 Provider Set（只注入 Service 和 Upload）
+var HandlerSet = wire.NewSet(handler.NewUserHandler, handler.NewVideoHandler, ServiceSet,
+	UploadSet,
+)

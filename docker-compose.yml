@@ -12,6 +12,7 @@ services:
       - mysql_data:/var/lib/mysql
     networks:
       - tiny_douyin_network
+
   # Redis
   redis:
     image: redis:7-alpine
@@ -22,11 +23,54 @@ services:
       - redis_data:/data
     networks:
       - tiny_douyin_network
+
+  # MinIO 对象存储
+  minio:
+    image: minio/minio
+    restart: unless-stopped
+    ports:
+      - "9000:9000"   # API 端口
+      - "9090:9001"   # 控制台端口 (改为 9090 避免冲突)
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - tiny_douyin_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  # RabbitMQ 消息队列
+  rabbitmq:
+    image: rabbitmq:3-management
+    restart: unless-stopped
+    ports:
+      - "5672:5672"   # AMQP 端口
+      - "15672:15672" # 管理界面端口
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - tiny_douyin_network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
 volumes:
   mysql_data:
   redis_data:
+  minio_data:
+  rabbitmq_data:
 
 networks:
   tiny_douyin_network:
     driver: bridge
-

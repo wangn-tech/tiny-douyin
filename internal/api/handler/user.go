@@ -114,6 +114,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 	response.SuccessWithData(c, dto.UserLoginResponse{
 		Response: response.Response{
 			StatusCode: errc.Success,
+			StatusMsg:  errc.GetMsg(errc.Success),
 		},
 		UserID: serviceResp.UserID,
 		Token:  serviceResp.Token,
@@ -166,6 +167,7 @@ func (h *UserHandler) GetUserInfo(c *gin.Context) {
 	response.SuccessWithData(c, dto.UserInfoResponse{
 		Response: response.Response{
 			StatusCode: errc.Success,
+			StatusMsg:  errc.GetMsg(errc.Success),
 		},
 		User: *user,
 	})
