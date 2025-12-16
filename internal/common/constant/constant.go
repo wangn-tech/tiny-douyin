@@ -63,3 +63,17 @@ const (
 	// FavoriteActionUnlike 取消点赞
 	FavoriteActionUnlike = 2
 )
+
+// 评论操作类型
+const (
+	// CommentActionPublish 发布评论
+	CommentActionPublish = 1
+	// CommentActionDelete 删除评论
+	CommentActionDelete = 2
+)
+
+// 评论内容限制
+const (
+	// CommentMaxLength 评论内容最大长度
+	CommentMaxLength = 255
+)

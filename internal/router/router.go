@@ -60,4 +60,15 @@ func Init(r *gin.Engine) {
 		favoriteRouter.GET("/list/", favoriteHandler.GetFavoriteList)
 	}
 
+	// 评论路由
+	commentHandler := wire.InitCommentHandler()
+
+	// 评论操作（需要登录）
+	commentRouter := apiRouter.Group("/comment")
+	commentRouter.Use(middleware.JWTAuth())
+	{
+		commentRouter.POST("/action/", commentHandler.CommentAction)
+		commentRouter.GET("/list/", commentHandler.GetCommentList)
+	}
+
 }

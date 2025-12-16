@@ -59,6 +59,17 @@ func InitFavoriteHandler() *handler.FavoriteHandler {
 	return favoriteHandler
 }
 
+// InitCommentHandler 初始化 CommentHandler（Wire 自动生成实现）
+func InitCommentHandler() *handler.CommentHandler {
+	db := ProvideDB()
+	iCommentDAO := dao.NewCommentDAO(db)
+	iVideoDAO := dao.NewVideoDAO(db)
+	iUserDAO := dao.NewUserDAO(db)
+	iCommentService := service.NewCommentService(iCommentDAO, iVideoDAO, iUserDAO, db)
+	commentHandler := handler.NewCommentHandler(iCommentService)
+	return commentHandler
+}
+
 // wire.go:
 
 // ProvideDB 提供数据库连接
@@ -70,12 +81,12 @@ func ProvideDB() *gorm.DB {
 var UploadSet = wire.NewSet(upload.NewUploadService, upload.NewWorker)
 
 // DAOSet DAO 层 Provider Set（只注入 DB）
-var DAOSet = wire.NewSet(dao.NewUserDAO, dao.NewVideoDAO, dao.NewFavoriteDAO)
+var DAOSet = wire.NewSet(dao.NewUserDAO, dao.NewVideoDAO, dao.NewFavoriteDAO, dao.NewCommentDAO)
 
 // ServiceSet Service 层 Provider Set（只注入 DAO）
-var ServiceSet = wire.NewSet(service.NewUserService, service.NewVideoService, service.NewFavoriteService, DAOSet)
+var ServiceSet = wire.NewSet(service.NewUserService, service.NewVideoService, service.NewFavoriteService, service.NewCommentService, DAOSet)
 
 // HandlerSet Handler 层 Provider Set（只注入 Service 和 Upload）
-var HandlerSet = wire.NewSet(handler.NewUserHandler, handler.NewVideoHandler, handler.NewFavoriteHandler, ServiceSet,
+var HandlerSet = wire.NewSet(handler.NewUserHandler, handler.NewVideoHandler, handler.NewFavoriteHandler, handler.NewCommentHandler, ServiceSet,
 	UploadSet,
 )
