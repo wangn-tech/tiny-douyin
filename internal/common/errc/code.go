@@ -23,9 +23,9 @@ const (
 	ErrVideoProcessFailed = 3004
 
 	// Comment 4xxx
-	ErrCommentNotFound          = 4001
-	ErrCommentPermissionDenied  = 4002
-	ErrCommentTooLong           = 4003
+	ErrCommentNotFound         = 4001
+	ErrCommentPermissionDenied = 4002
+	ErrCommentTooLong          = 4003
 
 	// Favorite 5xxx
 	ErrInvalidActionType = 5001
@@ -38,28 +38,28 @@ const (
 )
 
 var ErrMsg = map[int32]string{
-	Success:               "success",
-	Failed:                "failed",
-	ErrUserNotFound:       "用户不存在",
-	ErrUserAlreadyExists:  "用户已存在",
-	ErrInvalidPassword:    "密码错误",
-	ErrInvalidParams:      "参数错误",
-	ErrTokenMissing:       "token缺失",
-	ErrTokenInvalid:       "token无效",
-	ErrTokenExpired:       "token已过期",
-	ErrUnauthorized:       "未授权",
-	ErrVideoNotFound:      "视频不存在",
-	ErrVideoUploadFailed:  "视频上传失败",
-	ErrVideoFileInvalid:   "视频文件无效",
-	ErrVideoProcessFailed: "视频处理失败",
-	ErrCommentNotFound:    "评论不存在",
+	Success:                    "success",
+	Failed:                     "failed",
+	ErrUserNotFound:            "用户不存在",
+	ErrUserAlreadyExists:       "用户已存在",
+	ErrInvalidPassword:         "密码错误",
+	ErrInvalidParams:           "参数错误",
+	ErrTokenMissing:            "token缺失",
+	ErrTokenInvalid:            "token无效",
+	ErrTokenExpired:            "token已过期",
+	ErrUnauthorized:            "未授权",
+	ErrVideoNotFound:           "视频不存在",
+	ErrVideoUploadFailed:       "视频上传失败",
+	ErrVideoFileInvalid:        "视频文件无效",
+	ErrVideoProcessFailed:      "视频处理失败",
+	ErrCommentNotFound:         "评论不存在",
 	ErrCommentPermissionDenied: "无权限删除评论",
-	ErrCommentTooLong:     "评论内容过长",
-	ErrInvalidActionType:  "无效的操作类型",
-	ErrAlreadyFavorited:   "已经点赞过",
-	ErrNotFavorited:       "未点赞",
-	ErrInternalServer:     "服务器错误",
-	ErrDatabaseError:      "数据库错误",
+	ErrCommentTooLong:          "评论内容过长",
+	ErrInvalidActionType:       "无效的操作类型",
+	ErrAlreadyFavorited:        "已经点赞过",
+	ErrNotFavorited:            "未点赞",
+	ErrInternalServer:          "服务器错误",
+	ErrDatabaseError:           "数据库错误",
 }
 
 func GetMsg(code int32) string {
